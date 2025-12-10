@@ -42,8 +42,11 @@ The server will start on port `8083` by default.
 
 Once the server is running, access the API documentation at:
 
-- Swagger UI: `http://localhost:8083/swagger-ui.html`
+- Swagger UI: `http://localhost:8083/swagger-ui.html` or `http://localhost:8083/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:8083/v3/api-docs`
+- OpenAPI YAML: `http://localhost:8083/v3/api-docs.yaml`
+
+**Note:** If the Swagger UI is not accessible, ensure the application is running and check the console logs for any errors.
 
 ## API Endpoints
 
