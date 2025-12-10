@@ -48,7 +48,7 @@ public class PatientServiceImpl implements PatientService {
     public PatientDto update(Long id, PatientDto dto) {
         Patient existingPatient = patientRepository.findById(id)
                 .orElseThrow(() -> new PatientNotFoundException("Patient not found with id: " + id));
-        
+
         existingPatient.setFirstName(dto.getFirstName());
         existingPatient.setLastName(dto.getLastName());
         existingPatient.setAddress(dto.getAddress());
@@ -57,7 +57,42 @@ public class PatientServiceImpl implements PatientService {
         existingPatient.setZipCode(dto.getZipCode());
         existingPatient.setPhoneNumber(dto.getPhoneNumber());
         existingPatient.setEmail(dto.getEmail());
-        
+
+        Patient updatedPatient = patientRepository.save(existingPatient);
+        return patientMapper.toDto(updatedPatient);
+    }
+
+    @Override
+    public PatientDto patch(Long id, PatientDto dto) {
+        Patient existingPatient = patientRepository.findById(id)
+                .orElseThrow(() -> new PatientNotFoundException("Patient not found with id: " + id));
+
+        // Only update fields that are provided (non-null)
+        if (dto.getFirstName() != null) {
+            existingPatient.setFirstName(dto.getFirstName());
+        }
+        if (dto.getLastName() != null) {
+            existingPatient.setLastName(dto.getLastName());
+        }
+        if (dto.getAddress() != null) {
+            existingPatient.setAddress(dto.getAddress());
+        }
+        if (dto.getCity() != null) {
+            existingPatient.setCity(dto.getCity());
+        }
+        if (dto.getState() != null) {
+            existingPatient.setState(dto.getState());
+        }
+        if (dto.getZipCode() != null) {
+            existingPatient.setZipCode(dto.getZipCode());
+        }
+        if (dto.getPhoneNumber() != null) {
+            existingPatient.setPhoneNumber(dto.getPhoneNumber());
+        }
+        if (dto.getEmail() != null) {
+            existingPatient.setEmail(dto.getEmail());
+        }
+
         Patient updatedPatient = patientRepository.save(existingPatient);
         return patientMapper.toDto(updatedPatient);
     }
@@ -70,4 +105,3 @@ public class PatientServiceImpl implements PatientService {
         patientRepository.deleteById(id);
     }
 }
-

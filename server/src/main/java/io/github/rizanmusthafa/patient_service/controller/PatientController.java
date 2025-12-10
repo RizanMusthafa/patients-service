@@ -42,10 +42,15 @@ public class PatientController {
         return ResponseEntity.ok(updatedPatient);
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<PatientDto> patchPatient(@PathVariable Long id, @RequestBody PatientDto patientDto) {
+        PatientDto updatedPatient = patientService.patch(id, patientDto);
+        return ResponseEntity.ok(updatedPatient);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePatient(@PathVariable Long id) {
         patientService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
-
