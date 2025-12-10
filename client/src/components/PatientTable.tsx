@@ -11,7 +11,6 @@ import {
 } from '@mui/x-data-grid';
 import {
   Box,
-  IconButton,
   Snackbar,
   Alert,
   Dialog,
@@ -35,7 +34,9 @@ export default function PatientTable() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
-  const [originalRows, setOriginalRows] = useState<Map<GridRowId, Patient>>(new Map());
+  const [originalRows, setOriginalRows] = useState<Map<GridRowId, Patient>>(
+    new Map()
+  );
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -179,12 +180,12 @@ export default function PatientTable() {
         const patientData: Patient = {
           firstName: newRow.firstName as string,
           lastName: newRow.lastName as string,
-          address: newRow.address as string || '',
-          city: newRow.city as string || '',
-          state: newRow.state as string || '',
-          zipCode: newRow.zipCode as string || '',
-          phoneNumber: newRow.phoneNumber as string || '',
-          email: newRow.email as string || '',
+          address: (newRow.address as string) || '',
+          city: (newRow.city as string) || '',
+          state: (newRow.state as string) || '',
+          zipCode: (newRow.zipCode as string) || '',
+          phoneNumber: (newRow.phoneNumber as string) || '',
+          email: (newRow.email as string) || '',
         };
 
         const created = await patientService.create(patientData);
@@ -369,9 +370,14 @@ export default function PatientTable() {
           gap: 1,
         }}
       >
-        <IconButton onClick={handleAddRow} color="primary" size="large">
-          <AddIcon />
-        </IconButton>
+        <Button
+          onClick={handleAddRow}
+          color="primary"
+          size="large"
+          startIcon={<AddIcon />}
+        >
+          Add New Patient
+        </Button>
       </Box>
       <DataGrid
         rows={patients}
@@ -422,14 +428,21 @@ export default function PatientTable() {
         <DialogTitle id="delete-dialog-title">Delete Patient</DialogTitle>
         <DialogContent>
           <DialogContentText id="delete-dialog-description">
-            Are you sure you want to delete <strong>{deleteDialog.patientName}</strong>? This action cannot be undone.
+            Are you sure you want to delete{' '}
+            <strong>{deleteDialog.patientName}</strong>? This action cannot be
+            undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancelDelete} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained" autoFocus>
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
+            autoFocus
+          >
             Delete
           </Button>
         </DialogActions>
