@@ -1,9 +1,12 @@
 import type { Patient } from '../types/patient';
+import type { PageResponse } from '../types/pageResponse';
 import { apiClient } from './apiClient';
 
 export const patientService = {
-  async getAll(): Promise<Patient[]> {
-    const response = await apiClient.get<Patient[]>('/patient');
+  async getAll(page: number = 0, size: number = 10): Promise<PageResponse<Patient>> {
+    const response = await apiClient.get<PageResponse<Patient>>('/patient', {
+      params: { page, size },
+    });
     return response.data;
   },
 

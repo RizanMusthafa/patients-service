@@ -1,5 +1,6 @@
 package io.github.rizanmusthafa.patient_service.service.impl;
 
+import io.github.rizanmusthafa.patient_service.dto.PageResponse;
 import io.github.rizanmusthafa.patient_service.dto.PatientDto;
 import io.github.rizanmusthafa.patient_service.exception.PatientNotFoundException;
 import io.github.rizanmusthafa.patient_service.mapper.PatientMapper;
@@ -7,6 +8,9 @@ import io.github.rizanmusthafa.patient_service.model.Patient;
 import io.github.rizanmusthafa.patient_service.repository.PatientRepository;
 import io.github.rizanmusthafa.patient_service.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +31,27 @@ public class PatientServiceImpl implements PatientService {
         return patientRepository.findAll().stream()
                 .map(patientMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<PatientDto> findAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Patient> patientPage = patientRepository.findAll(pageable);
+        
+        List<PatientDto> content = patientPage.getContent().stream()
+                .map(patientMapper::toDto)
+                .collect(Collectors.toList());
+        
+        return new PageResponse<>(
+                content,
+                patientPage.getNumber(),
+                patientPage.getSize(),
+                patientPage.getTotalElements(),
+                patientPage.getTotalPages(),
+                patientPage.isFirst(),
+                patientPage.isLast()
+        );
     }
 
     @Override

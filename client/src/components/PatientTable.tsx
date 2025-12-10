@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   DataGrid,
   GridActionsCellItem,
@@ -37,6 +37,11 @@ export default function PatientTable() {
   const [originalRows, setOriginalRows] = useState<Map<GridRowId, Patient>>(
     new Map()
   );
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
+  const [totalRows, setTotalRows] = useState<number>(0);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -56,25 +61,33 @@ export default function PatientTable() {
     patientName: '',
   });
 
-  useEffect(() => {
-    loadPatients();
-  }, []);
+  const showSnackbar = useCallback(
+    (message: string, severity: 'success' | 'error') => {
+      setSnackbar({ open: true, message, severity });
+    },
+    []
+  );
 
-  const loadPatients = async () => {
+  const loadPatients = useCallback(async (page: number, size: number) => {
     try {
       setLoading(true);
-      const data = await patientService.getAll();
-      setPatients(data);
-    } catch (error) {
-      showSnackbar('Failed to load patients', 'error');
+      const response = await patientService.getAll(page, size);
+      setPatients(response.content);
+      setTotalRows(response.totalElements);
+    } catch {
+      setSnackbar({
+        open: true,
+        message: 'Failed to load patients',
+        severity: 'error',
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const showSnackbar = (message: string, severity: 'success' | 'error') => {
-    setSnackbar({ open: true, message, severity });
-  };
+  useEffect(() => {
+    loadPatients(paginationModel.page, paginationModel.pageSize);
+  }, [paginationModel.page, paginationModel.pageSize, loadPatients]);
 
   const handleRowEditStart = (params: { id: GridRowId }) => {
     const originalRow = patients.find((row) => row.id === params.id);
@@ -108,9 +121,9 @@ export default function PatientTable() {
       [id]: { mode: GridRowModes.View, ignoreModifications: true },
     });
     originalRows.delete(id);
-    const editedRow = patients.find((row) => row.id === id);
+    const editedRow = patients.find((row) => String(row.id) === String(id));
     if (editedRow && typeof id === 'string' && id.startsWith('new-')) {
-      setPatients(patients.filter((row) => row.id !== id));
+      setPatients(patients.filter((row) => String(row.id) !== String(id)));
     }
   };
 
@@ -172,7 +185,7 @@ export default function PatientTable() {
         }
 
         const updated = await patientService.patch(rowId, changedFields);
-        setPatients(patients.map((row) => (row.id === rowId ? updated : row)));
+        await loadPatients(paginationModel.page, paginationModel.pageSize);
         originalRows.delete(rowId);
         showSnackbar('Patient updated successfully', 'success');
         return updated;
@@ -189,14 +202,7 @@ export default function PatientTable() {
         };
 
         const created = await patientService.create(patientData);
-        setPatients(
-          patients
-            .filter(
-              (row) =>
-                !(typeof row.id === 'string' && row.id.startsWith('new-'))
-            )
-            .concat(created)
-        );
+        await loadPatients(paginationModel.page, paginationModel.pageSize);
         showSnackbar('Patient created successfully', 'success');
         return created;
       }
@@ -226,10 +232,10 @@ export default function PatientTable() {
 
     try {
       await patientService.delete(deleteDialog.patientId as number);
-      setPatients(patients.filter((row) => row.id !== deleteDialog.patientId));
+      await loadPatients(paginationModel.page, paginationModel.pageSize);
       showSnackbar('Patient deleted successfully', 'success');
       setDeleteDialog({ open: false, patientId: null, patientName: '' });
-    } catch (error) {
+    } catch {
       showSnackbar('Failed to delete patient', 'error');
     }
   };
@@ -241,7 +247,7 @@ export default function PatientTable() {
   const handleAddRow = () => {
     const newId = `new-${Date.now()}`;
     const newRow: Patient = {
-      id: newId as any,
+      id: newId as unknown as number,
       firstName: '',
       lastName: '',
       address: '',
@@ -321,7 +327,7 @@ export default function PatientTable() {
       headerName: 'Actions',
       width: 100,
       cellClassName: 'actions',
-      getActions: ({ id, row }) => {
+      getActions: ({ id }) => {
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
 
         if (isInEditMode) {
@@ -352,7 +358,7 @@ export default function PatientTable() {
             icon={<DeleteIcon />}
             label="Delete"
             onClick={handleDeleteClick(id)}
-            color="error"
+            color="inherit"
           />,
         ];
       },
@@ -390,6 +396,12 @@ export default function PatientTable() {
         processRowUpdate={processRowUpdate}
         loading={loading}
         getRowId={(row) => row.id || `temp-${Math.random()}`}
+        paginationMode="server"
+        rowCount={totalRows}
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
+        pageSizeOptions={[5, 10, 25, 50]}
+        disableRowSelectionOnClick
         slots={{
           toolbar: GridToolbar,
         }}

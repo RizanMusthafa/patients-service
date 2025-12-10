@@ -1,5 +1,6 @@
 package io.github.rizanmusthafa.patient_service.controller;
 
+import io.github.rizanmusthafa.patient_service.dto.PageResponse;
 import io.github.rizanmusthafa.patient_service.dto.PatientDto;
 import io.github.rizanmusthafa.patient_service.service.PatientService;
 import jakarta.validation.Valid;
@@ -7,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/patient")
@@ -19,8 +18,10 @@ public class PatientController {
     private final PatientService patientService;
 
     @GetMapping
-    public ResponseEntity<List<PatientDto>> getAllPatients() {
-        List<PatientDto> patients = patientService.findAll();
+    public ResponseEntity<PageResponse<PatientDto>> getAllPatients(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        PageResponse<PatientDto> patients = patientService.findAll(page, size);
         return ResponseEntity.ok(patients);
     }
 
